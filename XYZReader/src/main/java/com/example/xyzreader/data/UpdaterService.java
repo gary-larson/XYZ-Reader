@@ -1,5 +1,6 @@
 package com.example.xyzreader.data;
 
+
 import android.app.IntentService;
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
