@@ -22,6 +22,14 @@ android {
         minSdkVersion 19
         targetSdkVersion 29
     }
+
+    buildFeatures {
+        viewBinding = true
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -37,4 +45,6 @@ dependencies {
     implementation 'androidx.viewpager:viewpager:1.0.0'
     implementation "androidx.coordinatorlayout:coordinatorlayout:1.1.0"
     implementation 'com.google.android.material:material:1.2.0'
+    // For image placement and control
+    implementation "com.squareup.picasso:picasso:2.71828"
 }

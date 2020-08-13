@@ -27,6 +27,8 @@
             <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:paddingStart="@dimen/logo_padding"
+                android:paddingEnd="@dimen/logo_padding"
                 android:contentDescription="@string/app_name"
                 android:layout_gravity="bottom|start"
                 android:src="@drawable/logo"
@@ -46,21 +48,8 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_refresh_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingLeft="@dimen/list_side_margin"
-            android:paddingTop="116dp"
-            android:paddingRight="@dimen/list_side_margin"
-            android:paddingBottom="28dp"
-            android:scrollbarStyle="outsideOverlay" />
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    <include
+        android:id="@+id/content"
+        layout="@layout/article_content" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

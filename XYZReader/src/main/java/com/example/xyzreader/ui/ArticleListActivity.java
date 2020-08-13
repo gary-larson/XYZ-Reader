@@ -25,9 +25,12 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.xyzreader.R;
+import com.example.xyzreader.adapter.ArticleRecyclerViewAdapter;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ItemsContract;
 import com.example.xyzreader.data.UpdaterService;
+import com.example.xyzreader.databinding.ActivityArticleListBinding;
+import com.example.xyzreader.databinding.ArticleContentBinding;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -42,34 +45,41 @@ import java.util.Locale;
  * activity presents a grid of items as cards.
  */
 public class ArticleListActivity extends AppCompatActivity implements
-        LoaderManager.LoaderCallbacks<Cursor> {
+        LoaderManager.LoaderCallbacks<Cursor>,
+        ArticleRecyclerViewAdapter.OnListActivityInteractionListener {
 
-    private static final String TAG = ArticleListActivity.class.toString();
+    private static final String TAG = ArticleListActivity.class.getSimpleName();
     private Toolbar mToolbar;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
+    private ActivityArticleListBinding mBinding;
+    private ArticleContentBinding mContentBinding;
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss", Locale.getDefault());
-    // Use default locale format
-    private SimpleDateFormat outputFormat = new SimpleDateFormat("", Locale.getDefault());
-    // Most time functions can only handle 1902 - 2037
-    private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
+//    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss", Locale.getDefault());
+//    // Use default locale format
+//    private SimpleDateFormat outputFormat = new SimpleDateFormat("", Locale.getDefault());
+//    // Most time functions can only handle 1902 - 2037
+//    private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_article_list);
+        mBinding = ActivityArticleListBinding.inflate(getLayoutInflater());
+        mContentBinding = mBinding.content;
+        View view = mBinding.getRoot();
+        setContentView(view);
 
-        mToolbar = findViewById(R.id.toolbar);
+        mToolbar = mBinding.toolbar;
 
 
         //final View toolbarContainerView = findViewById(R.id.toolbar_container);
 
-        mSwipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
+        mSwipeRefreshLayout = mContentBinding.swipeRefreshLayout;
 
-        mRecyclerView = findViewById(R.id.recycler_view);
-        getSupportLoaderManager().initLoader(0, null, this);
+        mRecyclerView = mContentBinding.recyclerView;
 
+        //getSupportLoaderManager().initLoader(0, null, this);
+        LoaderManager.getInstance(this).initLoader(0,null,this);
         if (savedInstanceState == null) {
             refresh();
         }
@@ -115,7 +125,7 @@ public class ArticleListActivity extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(@NonNull androidx.loader.content.Loader<Cursor> loader, Cursor cursor) {
-        Adapter adapter = new Adapter(cursor);
+        ArticleRecyclerViewAdapter adapter = new ArticleRecyclerViewAdapter(this, cursor);
         adapter.setHasStableIds(true);
         mRecyclerView.setAdapter(adapter);
         int columnCount = getResources().getInteger(R.integer.list_column_count);
@@ -129,86 +139,92 @@ public class ArticleListActivity extends AppCompatActivity implements
         mRecyclerView.setAdapter(null);
     }
 
-    private class Adapter extends RecyclerView.Adapter<ViewHolder> {
-        private Cursor mCursor;
-
-        public Adapter(Cursor cursor) {
-            mCursor = cursor;
-        }
-
-        @Override
-        public long getItemId(int position) {
-            mCursor.moveToPosition(position);
-            return mCursor.getLong(ArticleLoader.Query._ID);
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = getLayoutInflater().inflate(R.layout.list_item_article, parent, false);
-            final ViewHolder vh = new ViewHolder(view);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    startActivity(new Intent(Intent.ACTION_VIEW,
-                            ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition()))));
-                }
-            });
-            return vh;
-        }
-
-        private Date parsePublishedDate() {
-            try {
-                String date = mCursor.getString(ArticleLoader.Query.PUBLISHED_DATE);
-                return dateFormat.parse(date);
-            } catch (ParseException ex) {
-                Log.e(TAG, ex.getMessage());
-                Log.i(TAG, "passing today's date");
-                return new Date();
-            }
-        }
-
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            mCursor.moveToPosition(position);
-            holder.titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
-            Date publishedDate = parsePublishedDate();
-            if (!publishedDate.before(START_OF_EPOCH.getTime())) {
-
-                holder.subtitleView.setText(Html.fromHtml(
-                        DateUtils.getRelativeTimeSpanString(
-                                publishedDate.getTime(),
-                                System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
-                                DateUtils.FORMAT_ABBREV_ALL).toString()
-                                + "<br/>" + " by "
-                                + mCursor.getString(ArticleLoader.Query.AUTHOR)));
-            } else {
-                holder.subtitleView.setText(Html.fromHtml(
-                        outputFormat.format(publishedDate)
-                        + "<br/>" + " by "
-                        + mCursor.getString(ArticleLoader.Query.AUTHOR)));
-            }
-            holder.thumbnailView.setImageUrl(
-                    mCursor.getString(ArticleLoader.Query.THUMB_URL),
-                    ImageLoaderHelper.getInstance(ArticleListActivity.this).getImageLoader());
-            holder.thumbnailView.setAspectRatio(mCursor.getFloat(ArticleLoader.Query.ASPECT_RATIO));
-        }
-
-        @Override
-        public int getItemCount() {
-            return mCursor.getCount();
-        }
+    @Override
+    public void onListActivityInteraction(int itemId) {
+        startActivity(new Intent(Intent.ACTION_VIEW,
+                ItemsContract.Items.buildItemUri(itemId)));
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        public DynamicHeightNetworkImageView thumbnailView;
-        public TextView titleView;
-        public TextView subtitleView;
-
-        public ViewHolder(View view) {
-            super(view);
-            thumbnailView = view.findViewById(R.id.thumbnail);
-            titleView = view.findViewById(R.id.article_title);
-            subtitleView = view.findViewById(R.id.article_subtitle);
-        }
-    }
+//    private class Adapter extends RecyclerView.Adapter<ViewHolder> {
+//        private Cursor mCursor;
+//
+//        public Adapter(Cursor cursor) {
+//            mCursor = cursor;
+//        }
+//
+//        @Override
+//        public long getItemId(int position) {
+//            mCursor.moveToPosition(position);
+//            return mCursor.getLong(ArticleLoader.Query._ID);
+//        }
+//
+//        @Override
+//        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+//            View view = getLayoutInflater().inflate(R.layout.list_item_article, parent, false);
+//            final ViewHolder vh = new ViewHolder(view);
+//            view.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    startActivity(new Intent(Intent.ACTION_VIEW,
+//                            ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition()))));
+//                }
+//            });
+//            return vh;
+//        }
+//
+//        private Date parsePublishedDate() {
+//            try {
+//                String date = mCursor.getString(ArticleLoader.Query.PUBLISHED_DATE);
+//                return dateFormat.parse(date);
+//            } catch (ParseException ex) {
+//                Log.e(TAG, ex.getMessage());
+//                Log.i(TAG, "passing today's date");
+//                return new Date();
+//            }
+//        }
+//
+//        @Override
+//        public void onBindViewHolder(ViewHolder holder, int position) {
+//            mCursor.moveToPosition(position);
+//            holder.titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
+//            Date publishedDate = parsePublishedDate();
+//            if (!publishedDate.before(START_OF_EPOCH.getTime())) {
+//
+//                holder.subtitleView.setText(Html.fromHtml(
+//                        DateUtils.getRelativeTimeSpanString(
+//                                publishedDate.getTime(),
+//                                System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
+//                                DateUtils.FORMAT_ABBREV_ALL).toString()
+//                                + "<br/>" + " by "
+//                                + mCursor.getString(ArticleLoader.Query.AUTHOR)));
+//            } else {
+//                holder.subtitleView.setText(Html.fromHtml(
+//                        outputFormat.format(publishedDate)
+//                        + "<br/>" + " by "
+//                        + mCursor.getString(ArticleLoader.Query.AUTHOR)));
+//            }
+//            holder.thumbnailView.setImageUrl(
+//                    mCursor.getString(ArticleLoader.Query.THUMB_URL),
+//                    ImageLoaderHelper.getInstance(ArticleListActivity.this).getImageLoader());
+//            holder.thumbnailView.setAspectRatio(mCursor.getFloat(ArticleLoader.Query.ASPECT_RATIO));
+//        }
+//
+//        @Override
+//        public int getItemCount() {
+//            return mCursor.getCount();
+//        }
+//    }
+//
+//    public static class ViewHolder extends RecyclerView.ViewHolder {
+//        public DynamicHeightNetworkImageView thumbnailView;
+//        public TextView titleView;
+//        public TextView subtitleView;
+//
+//        public ViewHolder(View view) {
+//            super(view);
+//            thumbnailView = view.findViewById(R.id.thumbnail);
+//            titleView = view.findViewById(R.id.article_title);
+//            subtitleView = view.findViewById(R.id.article_subtitle);
+//        }
+//    }
 }
