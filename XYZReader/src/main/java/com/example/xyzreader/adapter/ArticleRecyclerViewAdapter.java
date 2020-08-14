@@ -1,10 +1,8 @@
 package com.example.xyzreader.adapter;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.text.Html;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,18 +14,15 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.xyzreader.R;
-import com.example.xyzreader.data.ArticleLoader;
+import com.example.xyzreader.data.Article;
 import com.example.xyzreader.databinding.ListItemArticleBinding;
 import com.example.xyzreader.ui.ArticleListActivity;
-import com.example.xyzreader.ui.DynamicHeightNetworkImageView;
-import com.example.xyzreader.ui.ImageLoaderHelper;
 import com.squareup.picasso.Picasso;
 
-import java.io.File;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Locale;
 
 public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecyclerViewAdapter.ViewHolder> {
@@ -41,10 +36,9 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
     private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
     // Declare member variables
     private int mWidth;
-    private int mHeight;
     private ListItemArticleBinding mBinding;
     private Context mContext;
-    private Cursor mCursor;
+    private List<Article> mArticles;
     // Variable for listener
     private final OnListActivityInteractionListener mListener;
 
@@ -52,9 +46,8 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
      * Constructor for adapter
      * @param listener to process taps
      */
-    public ArticleRecyclerViewAdapter(OnListActivityInteractionListener listener, Cursor cursor) {
+    public ArticleRecyclerViewAdapter(OnListActivityInteractionListener listener) {
         mListener = listener;
-        mCursor = cursor;
     }
 
     /**
@@ -69,7 +62,6 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
         mContext = parent.getContext();
         // get visible width and height of the recyclerview
         mWidth  = parent.getMeasuredWidth();
-        mHeight = parent.getMeasuredHeight();
         // Inflate layout
         mBinding = ListItemArticleBinding.inflate(LayoutInflater.from(mContext), parent,
                 false);
@@ -91,9 +83,9 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
 
-        mCursor.moveToPosition(position);
-        holder.titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
-        Date publishedDate = parsePublishedDate();
+        Article article = mArticles.get(position);
+        holder.titleView.setText(article.getTitle());
+        Date publishedDate = article.getPublishedDate();
         if (!publishedDate.before(START_OF_EPOCH.getTime())) {
 
             holder.subtitleView.setText(Html.fromHtml(
@@ -102,12 +94,12 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
                             System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
                             DateUtils.FORMAT_ABBREV_ALL).toString()
                             + "<br/>" + " by "
-                            + mCursor.getString(ArticleLoader.Query.AUTHOR)));
+                            + article.getAuthor()));
         } else {
             holder.subtitleView.setText(Html.fromHtml(
                     outputFormat.format(publishedDate)
                             + "<br/>" + " by "
-                            + mCursor.getString(ArticleLoader.Query.AUTHOR)));
+                            + article.getAuthor()));
         }
 //        holder.thumbnailView.setImageUrl(
 //                mCursor.getString(ArticleLoader.Query.THUMB_URL),
@@ -115,14 +107,14 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
 //        holder.thumbnailView.setAspectRatio(mCursor.getFloat(ArticleLoader.Query.ASPECT_RATIO));
         // Utilize Picasso to load the poster into the image view
         // resize images based on height, width and orientation of phone
-        String urlString = mCursor.getString(ArticleLoader.Query.THUMB_URL);
+        String urlString = article.getThumbnailUrl();
         if (urlString != null) {
             int width = mWidth / mContext.getResources().getInteger(R.integer.list_column_count);
             Picasso.get().load(urlString)
                     //.error(R.mipmap.error)
                     .noPlaceholder()
                     .resize(width,
-                            (int) (width * mCursor.getDouble(ArticleLoader.Query.ASPECT_RATIO) ))
+                            (int) (width * article.getAspectRatio() ))
                     .into(holder.imageView);
         }
 
@@ -147,16 +139,16 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
 //        notifyDataSetChanged();
 //    }
 
-    private Date parsePublishedDate() {
-        try {
-            String date = mCursor.getString(ArticleLoader.Query.PUBLISHED_DATE);
-            return dateFormat.parse(date);
-        } catch (ParseException ex) {
-            Log.e(TAG, ex.getMessage());
-            Log.i(TAG, "passing today's date");
-            return new Date();
-        }
-    }
+//    private Date parsePublishedDate() {
+//        try {
+//            String date = mCursor.getString(ArticleLoader.Query.PUBLISHED_DATE);
+//            return dateFormat.parse(date);
+//        } catch (ParseException ex) {
+//            Log.e(TAG, ex.getMessage());
+//            Log.i(TAG, "passing today's date");
+//            return new Date();
+//        }
+//    }
 
     /**
      * Method to get the number of items in the list
@@ -164,10 +156,19 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
      */
     @Override
     public int getItemCount() {
-        if (mCursor == null) {
+        if (mArticles == null) {
             return 0;
         }
-        return mCursor.getCount();
+        return mArticles.size();
+    }
+
+    /**
+     * Method to set list data and notify adapter
+     * @param list to set
+     */
+    public void setList(List<Article> list) {
+        mArticles = list;
+        notifyDataSetChanged();
     }
 
     /**

@@ -11,4 +11,6 @@
 
     <string name="article_image">Article Image</string>
 
+    <string name="error_message">Unknown Network Error\nPlease check internet connectivity\nThen try again!</string>
+
 </resources>
