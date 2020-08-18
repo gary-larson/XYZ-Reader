@@ -23,10 +23,10 @@ public interface ArticleDao {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     void updateArticle(Article Article);
 
-    @Delete
-    void deleteAllArticles(List<Article> articleList);
+    @Query("DELETE FROM articles")
+    void deleteAllArticles();
 
-    @Query("SELECT * FROM articles")
+    @Query("SELECT * FROM articles ORDER BY article_id")
     List<Article> getAllArticles();
 
     @Query("SELECT * FROM articles WHERE article_id = :articleId")

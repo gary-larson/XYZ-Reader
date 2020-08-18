@@ -5,6 +5,7 @@ import android.database.Cursor;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.xyzreader.utilities.ArticleResult;
@@ -31,4 +32,5 @@ public class ArticleViewModel extends AndroidViewModel {
     public void refreshArticles() {
         mArticleRepository.refreshArticles();
     }
+
 }

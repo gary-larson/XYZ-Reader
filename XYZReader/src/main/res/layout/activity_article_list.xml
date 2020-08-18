@@ -49,6 +49,11 @@ tools:context=".ui.ArticleListActivity">
 
     <include
         android:id="@+id/content"
-        layout="@layout/article_content" />
+        layout="@layout/article_content"
+        android:visibility="gone"/>
+
+    <include
+        android:id="@+id/error_message"
+        layout="@layout/article_error_message" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

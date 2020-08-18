@@ -16,6 +16,8 @@ final public class ArticleNetworkUtilities {
     // Declare constants
     private static final String ARTICLE_URL =
             "https://raw.githubusercontent.com/SuperAwesomeness/XYZReader/master/data.json";
+    private static final String ORIGINAL_ARTICLE_URL =
+            "https://d17h27t6h515a5.cloudfront.net/topher/2017/March/58c5d68f_xyz-reader/xyz-reader.json";
 
 
     /**
@@ -32,7 +34,7 @@ final public class ArticleNetworkUtilities {
      */
     public static String getResponseFromHttpUrl() throws IOException {
         // Build Uri
-        Uri builtUri = Uri.parse(ARTICLE_URL).buildUpon().build();
+        Uri builtUri = Uri.parse(ORIGINAL_ARTICLE_URL).buildUpon().build();
         URL url = null;
         // Convert to URL
         try {

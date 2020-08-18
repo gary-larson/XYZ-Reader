@@ -1,26 +1,13 @@
 package com.example.xyzreader.ui;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.database.Cursor;
 import android.os.Bundle;
-
-import android.text.Html;
-import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
-
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.Loader;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -28,20 +15,11 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.example.xyzreader.R;
 import com.example.xyzreader.adapter.ArticleRecyclerViewAdapter;
 import com.example.xyzreader.data.Article;
-import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ArticleViewModel;
-import com.example.xyzreader.data.ItemsContract;
-import com.example.xyzreader.data.UpdaterService;
 import com.example.xyzreader.databinding.ActivityArticleListBinding;
-import com.example.xyzreader.databinding.ArticleContentBinding;
 import com.example.xyzreader.utilities.ArticleResult;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * An activity representing a list of Articles. This activity has different presentations for
@@ -50,40 +28,43 @@ import java.util.Locale;
  * activity presents a grid of items as cards.
  */
 public class ArticleListActivity extends AppCompatActivity implements
-        ArticleRecyclerViewAdapter.OnListActivityInteractionListener {
-
-    private static final String TAG = ArticleListActivity.class.getSimpleName();
-    private Toolbar mToolbar;
+        ArticleRecyclerViewAdapter.OnListActivityInteractionListener, SwipeRefreshLayout.OnRefreshListener {
+    // Declare variables
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private RecyclerView mRecyclerView;
-    private ActivityArticleListBinding mBinding;
-    private ArticleContentBinding mContentBinding;
     private ArticleViewModel mViewModel;
+    private ProgressBar mLoadingIndicator;
+    private TextView mErrorMessage;
 
 
-//    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss", Locale.getDefault());
-//    // Use default locale format
-//    private SimpleDateFormat outputFormat = new SimpleDateFormat("", Locale.getDefault());
-//    // Most time functions can only handle 1902 - 2037
-//    private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
-
+    /**
+     * Method to create and inflate view
+     * @param savedInstanceState for state information
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBinding = ActivityArticleListBinding.inflate(getLayoutInflater());
-        mContentBinding = mBinding.content;
+
+        // set up binding
+        com.example.xyzreader.databinding.ActivityArticleListBinding mBinding =
+                ActivityArticleListBinding.inflate(getLayoutInflater());
+        com.example.xyzreader.databinding.ArticleContentBinding mContentBinding = mBinding.content;
+        com.example.xyzreader.databinding.ArticleErrorMessageBinding mErrorMessageBinding =
+                mBinding.errorMessage;
+
+        // get view
         View view = mBinding.getRoot();
         setContentView(view);
+
+        // Declare and initialize variables
         mViewModel = new ViewModelProvider(this).get(ArticleViewModel.class);
-        mToolbar = mBinding.toolbar;
         ArticleRecyclerViewAdapter mAdapter;
-
-
-        //final View toolbarContainerView = findViewById(R.id.toolbar_container);
-
         mSwipeRefreshLayout = mContentBinding.swipeRefreshLayout;
+        mSwipeRefreshLayout.setOnRefreshListener(this);
+        mLoadingIndicator = mErrorMessageBinding.pbLoadingIndicator;
+        mErrorMessage = mErrorMessageBinding.tvErrorMessage;
 
-        mRecyclerView = mContentBinding.recyclerView;
+        // set recyclerView properties
+        RecyclerView mRecyclerView = mContentBinding.recyclerView;
         mAdapter = new ArticleRecyclerViewAdapter(this);
         mAdapter.setHasStableIds(true);
         mRecyclerView.setAdapter(mAdapter);
@@ -92,167 +73,37 @@ public class ArticleListActivity extends AppCompatActivity implements
                 new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(sglm);
 
+        // Setup live data observer
         mViewModel.getAllArticles().observe(this, newArticles -> {
+
             if (newArticles instanceof ArticleResult.Error) {
-                // TODO display error message
-                ArticleResult.Error<List<Article>> result =
-                        (ArticleResult.Error<List<Article>>) newArticles;
-                String errorMessage = ((ArticleResult.Error<List<Article>>) newArticles).mErrorMessage;
+                // display error message
+                String errorMessage = ((ArticleResult.Error<List<Article>>) newArticles)
+                        .mErrorMessage;
+                mBinding.content.getRoot().setVisibility(View.GONE);
+                mBinding.errorMessage.getRoot().setVisibility(View.VISIBLE);
+                mLoadingIndicator.setVisibility(View.GONE);
+                mErrorMessage.setVisibility(View.VISIBLE);
             } else {
+                mBinding.content.getRoot().setVisibility(View.VISIBLE);
+                mBinding.errorMessage.getRoot().setVisibility(View.GONE);
                 ArticleResult.Success<List<Article>> result =
                         (ArticleResult.Success<List<Article>>) newArticles;
                 mAdapter.setList(result.data);
             }
+            mSwipeRefreshLayout.setRefreshing(false);
         });
-
-//        //getSupportLoaderManager().initLoader(0, null, this);
-//        LoaderManager.getInstance(this).initLoader(0,null,this);
-        if (savedInstanceState == null) {
-            refresh();
-        }
     }
-
-    private void refresh() {
-        mViewModel.refreshArticles();
-    }
-//
-//    @Override
-//    protected void onStart() {
-//        super.onStart();
-//        registerReceiver(mRefreshingReceiver,
-//                new IntentFilter(UpdaterService.BROADCAST_ACTION_STATE_CHANGE));
-//    }
-//
-//    @Override
-//    protected void onStop() {
-//        super.onStop();
-//        unregisterReceiver(mRefreshingReceiver);
-//    }
-//
-//    private boolean mIsRefreshing = false;
-//
-//    private BroadcastReceiver mRefreshingReceiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            if (UpdaterService.BROADCAST_ACTION_STATE_CHANGE.equals(intent.getAction())) {
-//                mIsRefreshing = intent.getBooleanExtra(UpdaterService.EXTRA_REFRESHING, false);
-//                updateRefreshingUI();
-//            }
-//        }
-//    };
-//
-//    private void updateRefreshingUI() {
-//        mSwipeRefreshLayout.setRefreshing(mIsRefreshing);
-//    }
-//
-//    @Override
-//    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-//        return ArticleLoader.newAllArticlesInstance(this);
-//    }
-//
-//    @Override
-//    public void onLoadFinished(@NonNull androidx.loader.content.Loader<Cursor> loader, Cursor cursor) {
-//        ArticleRecyclerViewAdapter adapter = new ArticleRecyclerViewAdapter(this, cursor);
-//        adapter.setHasStableIds(true);
-//        mRecyclerView.setAdapter(adapter);
-//        int columnCount = getResources().getInteger(R.integer.list_column_count);
-//        StaggeredGridLayoutManager sglm =
-//                new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
-//        mRecyclerView.setLayoutManager(sglm);
-//    }
-//
-//    @Override
-//    public void onLoaderReset(@NonNull androidx.loader.content.Loader<Cursor> loader) {
-//        mRecyclerView.setAdapter(null);
-//    }
 
     @Override
-    public void onListActivityInteraction(int itemId) {
+    public void onListActivityInteraction(int position) {
         Intent intent = new Intent(this, ArticleDetailActivity.class);
-        intent.putExtra("ItemId", itemId);
+        intent.putExtra("Position", position);
         startActivity(intent);
     }
 
-//    private class Adapter extends RecyclerView.Adapter<ViewHolder> {
-//        private Cursor mCursor;
-//
-//        public Adapter(Cursor cursor) {
-//            mCursor = cursor;
-//        }
-//
-//        @Override
-//        public long getItemId(int position) {
-//            mCursor.moveToPosition(position);
-//            return mCursor.getLong(ArticleLoader.Query._ID);
-//        }
-//
-//        @Override
-//        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-//            View view = getLayoutInflater().inflate(R.layout.list_item_article, parent, false);
-//            final ViewHolder vh = new ViewHolder(view);
-//            view.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    startActivity(new Intent(Intent.ACTION_VIEW,
-//                            ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition()))));
-//                }
-//            });
-//            return vh;
-//        }
-//
-//        private Date parsePublishedDate() {
-//            try {
-//                String date = mCursor.getString(ArticleLoader.Query.PUBLISHED_DATE);
-//                return dateFormat.parse(date);
-//            } catch (ParseException ex) {
-//                Log.e(TAG, ex.getMessage());
-//                Log.i(TAG, "passing today's date");
-//                return new Date();
-//            }
-//        }
-//
-//        @Override
-//        public void onBindViewHolder(ViewHolder holder, int position) {
-//            mCursor.moveToPosition(position);
-//            holder.titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
-//            Date publishedDate = parsePublishedDate();
-//            if (!publishedDate.before(START_OF_EPOCH.getTime())) {
-//
-//                holder.subtitleView.setText(Html.fromHtml(
-//                        DateUtils.getRelativeTimeSpanString(
-//                                publishedDate.getTime(),
-//                                System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
-//                                DateUtils.FORMAT_ABBREV_ALL).toString()
-//                                + "<br/>" + " by "
-//                                + mCursor.getString(ArticleLoader.Query.AUTHOR)));
-//            } else {
-//                holder.subtitleView.setText(Html.fromHtml(
-//                        outputFormat.format(publishedDate)
-//                        + "<br/>" + " by "
-//                        + mCursor.getString(ArticleLoader.Query.AUTHOR)));
-//            }
-//            holder.thumbnailView.setImageUrl(
-//                    mCursor.getString(ArticleLoader.Query.THUMB_URL),
-//                    ImageLoaderHelper.getInstance(ArticleListActivity.this).getImageLoader());
-//            holder.thumbnailView.setAspectRatio(mCursor.getFloat(ArticleLoader.Query.ASPECT_RATIO));
-//        }
-//
-//        @Override
-//        public int getItemCount() {
-//            return mCursor.getCount();
-//        }
-//    }
-//
-//    public static class ViewHolder extends RecyclerView.ViewHolder {
-//        public DynamicHeightNetworkImageView thumbnailView;
-//        public TextView titleView;
-//        public TextView subtitleView;
-//
-//        public ViewHolder(View view) {
-//            super(view);
-//            thumbnailView = view.findViewById(R.id.thumbnail);
-//            titleView = view.findViewById(R.id.article_title);
-//            subtitleView = view.findViewById(R.id.article_subtitle);
-//        }
-//    }
+    @Override
+    public void onRefresh() {
+        mViewModel.refreshArticles();
+    }
 }

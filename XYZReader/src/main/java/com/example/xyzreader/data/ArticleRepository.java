@@ -22,47 +22,104 @@ interface RepositoryCallback<T> {
 
 public class ArticleRepository {
     // Declare variables
-    private MutableLiveData<ArticleResult<List<Article>>> mArticles;
+    private MutableLiveData<ArticleResult<List<Article>>> mResultArticles;
+    private MutableLiveData<List<Article>> mArticles;
     private String mErrorMessage;
-    private Application mApplication;
     private ArticleExecutor mArticleExecutor;
     private ArticleDao mArticleDao;
 
+    /**
+     * Constructor for article repository
+     * @param application to use for database
+     */
     public ArticleRepository(Application application) {
-        mApplication = application;
+        // Initialize live data variables
+        mResultArticles = new MutableLiveData<>();
         mArticles = new MutableLiveData<>();
-        mErrorMessage = mApplication.getString(R.string.error_message);
+        // Initialize error message
+        mErrorMessage = application.getString(R.string.error_message);
+        // Initialize executor for accessing internet
         mArticleExecutor = new ArticleExecutor();
-        ArticleRoomDatabase db = ArticleRoomDatabase.getDatabase(mApplication);
+        // Declar and initialize database variables
+        ArticleRoomDatabase db = ArticleRoomDatabase.getDatabase(application);
         mArticleDao = db.articleDao();
     }
 
+    /**
+     * Method to retrieve all articles when database data is unknown
+     * @return Artical result with data or error message
+     */
     public MutableLiveData<ArticleResult<List<Article>>> getAllArticles () {
-        ArticleRoomDatabase.databaseWriteExecutor.execute(() -> {
-            List<Article> articles = mArticleDao.getAllArticles();
-            if (articles.size() > 0) {
-                ArticleResult<List<Article>> listArticleResult = new ArticleResult.Success<>(articles);
-                mArticles.postValue(listArticleResult);
-            } else {
-                retrieveArticleList(result -> {
-                    mArticles.postValue(result);
-                    if (result instanceof ArticleResult.Success) {
-                        mArticleDao.insertAllArticles(((ArticleResult.Success<List<Article>>) result).data);
-                    }
-                });
-            }
-        });
+        // check if data does not exist yet
+        if (mResultArticles.getValue() == null ||
+                mResultArticles.getValue() instanceof ArticleResult.Error) {
+            // start database thread
+            ArticleRoomDatabase.databaseWriteExecutor.execute(() -> {
+                List<Article> articles = mArticleDao.getAllArticles();
+                if (articles.size() > 0) {
+                    // package database data
+                    ArticleResult<List<Article>> listArticleResult =
+                            new ArticleResult.Success<>(articles);
+                    // post live data results
+                    mResultArticles.postValue(listArticleResult);
+                } else {
+                    // get data from internet
+                    retrieveArticleList(result -> {
+                        // post results
+                        mResultArticles.postValue(result);
+                        if (result instanceof ArticleResult.Success) {
+                            // if retrieved data add it to the database
+                            mArticleDao.insertAllArticles(((ArticleResult.Success<List<Article>>) result).data);
+                        }
+                    });
+                }
+            });
+        }
+        // Return results
+        return mResultArticles;
+    }
+
+    /**
+     * Method to get all articles from database
+     * only used when data is known to be in database
+     * @return all articles in live data
+     */
+    public MutableLiveData<List<Article>> getArticles() {
+        // check for data
+        if (mArticles.getValue() == null ) {
+            // start database executor
+            ArticleRoomDatabase.databaseWriteExecutor.execute(() -> {
+                // get all articles from database
+                List<Article> articleList = mArticleDao.getAllArticles();
+                // check for data should always be true
+                if (articleList != null) {
+                    // return all articles through live data
+                    mArticles.postValue(articleList);
+                }
+            });
+        }
+        // return all articles or none
         return mArticles;
     }
 
+    /**
+     * Method to force retrieval of all articles from the internet (unknown data sections only)
+     */
     public void refreshArticles() {
-        if (mArticles.getValue() instanceof ArticleResult.Success) {
-            mArticleDao.deleteAllArticles(((ArticleResult.Success<List<Article>>) mArticles.getValue()).data);
-        }
+        // get articles from internet
         retrieveArticleList(result -> {
-            mArticles.postValue(result);
+            // post results to live data (unknown
+            mResultArticles.postValue(result);
+            // check for returned articles
             if (result instanceof ArticleResult.Success) {
-                mArticleDao.insertAllArticles(((ArticleResult.Success<List<Article>>) result).data);
+                // start database executor
+                ArticleRoomDatabase.databaseWriteExecutor.execute(() -> {
+                    // delete all articles from database
+                    mArticleDao.deleteAllArticles();
+                    // insert all articles in database
+                    mArticleDao.insertAllArticles(((ArticleResult.Success<List<Article>>)
+                            result).data);
+                });
             }
         });
     }
@@ -74,6 +131,7 @@ public class ArticleRepository {
     public void retrieveArticleList (
             final RepositoryCallback<List<Article>> callback
     ) {
+        // start new thread
         mArticleExecutor.execute(() -> {
             try {
                 // attempt to get movie information
