@@ -1,39 +1,24 @@
 package com.example.xyzreader.ui;
 
 
-
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-
 import android.os.Bundle;
-
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ShareCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.Loader;
 import androidx.palette.graphics.Palette;
 
 import com.android.volley.VolleyError;
@@ -41,8 +26,15 @@ import com.android.volley.toolbox.ImageLoader;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.Article;
 import com.example.xyzreader.data.ArticleDetailViewModel;
-import com.example.xyzreader.data.ArticleLoader;
+import com.example.xyzreader.databinding.ActivityArticleDetailBinding;
+import com.example.xyzreader.databinding.ArticleDetailContentBinding;
 import com.example.xyzreader.databinding.FragmentArticleDetailBinding;
+import com.squareup.picasso.Picasso;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
 
 /**
  * A fragment representing a single Article detail screen. This fragment is
@@ -50,31 +42,18 @@ import com.example.xyzreader.databinding.FragmentArticleDetailBinding;
  * tablets) or a {@link ArticleDetailActivity} on handsets.
  */
 public class ArticleDetailFragment extends Fragment {
-    private static final String TAG = "ArticleDetailFragment";
-
+    // Declare variables
     public static final String ARG_ITEM_ID = "Position";
-    private static final float PARALLAX_FACTOR = 1.25f;
 
-    //private Cursor mCursor;
     private FragmentArticleDetailBinding mBinding;
-    private ArticleDetailViewModel mArticleDetailViewModel;
+    private ArticleDetailContentBinding mContentBinding;
     private int mPosition;
     private Article mArticle;
-    private View mRootView;
     private int mMutedColor = 0xFF333333;
-    private ObservableScrollView mScrollView;
-    private DrawInsetsFrameLayout mDrawInsetsFrameLayout;
-    private ColorDrawable mStatusBarColorDrawable;
-
     private int mTopInset;
-    private View mPhotoContainerView;
-    private ImageView mPhotoView;
-    private int mScrollY;
-    private boolean mIsCard = false;
-    private int mStatusBarFullOpacityBottom;
+    private int mWidth;
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss",
-            Locale.getDefault());
+
     // Use default locale format
     private SimpleDateFormat outputFormat = new SimpleDateFormat("", Locale.getDefault());
     // Most time functions can only handle 1902 - 2037
@@ -99,18 +78,15 @@ public class ArticleDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments().containsKey(ARG_ITEM_ID)) {
+        if (getArguments() != null && getArguments().containsKey(ARG_ITEM_ID)) {
             mPosition = getArguments().getInt(ARG_ITEM_ID);
         }
-        mIsCard = getResources().getBoolean(R.bool.detail_is_card);
-        mStatusBarFullOpacityBottom = getResources().getDimensionPixelSize(
-                R.dimen.detail_card_top_margin);
         setHasOptionsMenu(true);
     }
 
-    public ArticleDetailActivity getActivityCast() {
-        return (ArticleDetailActivity) getActivity();
-    }
+//    public ArticleDetailActivity getActivityCast() {
+//        return (ArticleDetailActivity) getActivity();
+//    }
 
 //    @Override
 //    public void onActivityCreated(Bundle savedInstanceState) {
@@ -125,24 +101,17 @@ public class ArticleDetailFragment extends Fragment {
 //    }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         mBinding = FragmentArticleDetailBinding.inflate(inflater, container, false);
-        mRootView = mBinding.getRoot();
-        mArticleDetailViewModel = new ViewModelProvider(requireActivity())
+        mContentBinding = mBinding.content;
+        ArticleDetailViewModel mArticleDetailViewModel = new ViewModelProvider(requireActivity())
                 .get(ArticleDetailViewModel.class);
         mArticle = mArticleDetailViewModel.getArticle(mPosition);
-        mDrawInsetsFrameLayout = (DrawInsetsFrameLayout)
-                mBinding.drawInsetsFrameLayout;
-        mDrawInsetsFrameLayout.setOnInsetsCallback(new DrawInsetsFrameLayout.OnInsetsCallback() {
-            @Override
-            public void onInsetsChanged(Rect insets) {
-                mTopInset = insets.top;
-            }
-        });
+        // mBinding.drawInsetsFrameLayout.setOnInsetsCallback(insets -> mTopInset = insets.top);
 
-        mScrollView = (ObservableScrollView)mBinding.scrollview;
+
 //        mScrollView.setCallbacks(new ObservableScrollView.Callbacks() {
 //            @Override
 //            public void onScrollChanged() {
@@ -152,25 +121,16 @@ public class ArticleDetailFragment extends Fragment {
 //                updateStatusBar();
 //            }
 //        });
-
-        mPhotoView = mBinding.photo;
-        mPhotoContainerView = mBinding.photoContainer;
-
-        mStatusBarColorDrawable = new ColorDrawable(0);
-
-        mBinding.shareFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(Intent.createChooser(ShareCompat.IntentBuilder.from(getActivity())
-                        .setType("text/plain")
-                        .setText("Some sample text")
-                        .getIntent(), getString(R.string.action_share)));
-            }
-        });
+        if (getActivity() != null) {
+            mBinding.shareFab.setOnClickListener(view -> startActivity(Intent.createChooser(ShareCompat.IntentBuilder.from(getActivity())
+                    .setType("text/plain")
+                    .setText("Some sample text")
+                    .getIntent(), getString(R.string.action_share))));
+        }
 
         bindViews();
         //updateStatusBar();
-        return mRootView;
+        return mBinding.getRoot();
     }
 
 //    private void updateStatusBar() {
@@ -207,26 +167,17 @@ public class ArticleDetailFragment extends Fragment {
     }
 
     private void bindViews() {
-        if (mRootView == null) {
-            return;
-        }
-
-        TextView titleView = mBinding.articleTitle;
-        TextView bylineView = mBinding.articleByline;
-        bylineView.setMovementMethod(new LinkMovementMethod());
-        TextView bodyView = mBinding.articleBody;
-
-
-        bodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
+        mContentBinding.articleByline.setMovementMethod(new LinkMovementMethod());
+        mContentBinding.articleBody.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
 
         if (mArticle != null) {
-            mRootView.setAlpha(0);
-            mRootView.setVisibility(View.VISIBLE);
-            mRootView.animate().alpha(1);
-            titleView.setText(mArticle.getTitle());
+            mBinding.getRoot().setAlpha(0);
+            mBinding.getRoot().setVisibility(View.VISIBLE);
+            mBinding.getRoot().animate().alpha(1);
+            mContentBinding.articleTitle.setText(mArticle.getTitle());
             Date publishedDate = parsePublishedDate();
             if (!publishedDate.before(START_OF_EPOCH.getTime())) {
-                bylineView.setText(Html.fromHtml(
+                mContentBinding.articleByline.setText(Html.fromHtml(
                         DateUtils.getRelativeTimeSpanString(
                                 publishedDate.getTime(),
                                 System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
@@ -237,38 +188,48 @@ public class ArticleDetailFragment extends Fragment {
 
             } else {
                 // If date is before 1902, just show the string
-                bylineView.setText(Html.fromHtml(
+                mContentBinding.articleByline.setText(Html.fromHtml(
                         outputFormat.format(publishedDate) + " by <font color='#ffffff'>"
                         + mArticle.getAuthor()
                                 + "</font>"));
 
             }
-            bodyView.setText(Html.fromHtml(mArticle.getBody().replaceAll("(\r\n|\n)", "<br />")));
-            ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
-                    .get(mArticle.getPhotoUrl(), new ImageLoader.ImageListener() {
-                        @Override
-                        public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
-                            Bitmap bitmap = imageContainer.getBitmap();
-                            if (bitmap != null) {
-                                Palette p = Palette.generate(bitmap, 12);
-                                mMutedColor = p.getDarkMutedColor(0xFF333333);
-                                mPhotoView.setImageBitmap(imageContainer.getBitmap());
-                                mRootView.findViewById(R.id.meta_bar)
-                                        .setBackgroundColor(mMutedColor);
-                                //updateStatusBar();
-                            }
-                        }
+            mContentBinding.articleBody.setText(Html.fromHtml(mArticle.getBody().replaceAll("(\r\n|\n)", "<br />")));
+            String urlString = mArticle.getPhotoUrl();
+            if (urlString != null) {
 
-                        @Override
-                        public void onErrorResponse(VolleyError volleyError) {
-
-                        }
-                    });
+                double height = getResources().getDimension(R.dimen.detail_photo_height);
+                double width = height * mArticle.getAspectRatio();
+                Picasso.get().load(urlString)
+                        //.error(R.mipmap.error)
+                        .noPlaceholder()
+                        .resize( (int) width, (int) height)
+                        .into(mBinding.photo);
+            }
+//            ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
+//                    .get(mArticle.getPhotoUrl(), new ImageLoader.ImageListener() {
+//                        @Override
+//                        public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
+//                            Bitmap bitmap = imageContainer.getBitmap();
+//                            if (bitmap != null) {
+//                                Palette p = Palette.generate(bitmap, 12);
+//                                mMutedColor = p.getDarkMutedColor(0xFF333333);
+//                                mBinding.photo.setImageBitmap(imageContainer.getBitmap());
+//                                mBinding.metaBar.setBackgroundColor(mMutedColor);
+//                                //updateStatusBar();
+//                            }
+//                        }
+//
+//                        @Override
+//                        public void onErrorResponse(VolleyError volleyError) {
+//
+//                        }
+//                    });
         } else {
-            mRootView.setVisibility(View.GONE);
-            titleView.setText("N/A");
-            bylineView.setText("N/A" );
-            bodyView.setText("N/A");
+            mBinding.getRoot().setVisibility(View.GONE);
+            mContentBinding.articleTitle.setText("N/A");
+            mContentBinding.articleByline.setText("N/A" );
+            mContentBinding.articleBody.setText("N/A");
         }
     }
 

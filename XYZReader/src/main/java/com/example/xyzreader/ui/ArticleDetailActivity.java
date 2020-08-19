@@ -2,34 +2,16 @@ package com.example.xyzreader.ui;
 
 
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.os.Bundle;
 
-import android.util.TypedValue;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowInsets;
-
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.Loader;
-import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
-import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.xyzreader.R;
 import com.example.xyzreader.data.Article;
 import com.example.xyzreader.data.ArticleDetailViewModel;
-import com.example.xyzreader.data.ArticleLoader;
-import com.example.xyzreader.data.ItemsContract;
 import com.example.xyzreader.databinding.ActivityArticleDetailBinding;
 
 import java.util.List;
@@ -38,21 +20,13 @@ import java.util.List;
  * An activity representing a single Article detail screen, letting you swipe between articles.
  */
 public class ArticleDetailActivity extends FragmentActivity {
-
-    //private Cursor mCursor;
+    // Declare variables
     private ActivityArticleDetailBinding mBinding;
-    private ArticleDetailViewModel mArticleDetailViewModel;
-    private Article mArticle;
     private int mStartPosition;
     private int mPosition;
     private List<Article> mArticles;
-    private int mSelectedItemUpButtonFloor = Integer.MAX_VALUE;
-    private int mTopInset;
-
-    private ViewPager2 mPager;
     private FragmentStateAdapter mPagerAdapter;
-    private View mUpButtonContainer;
-    private View mUpButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +38,8 @@ public class ArticleDetailActivity extends FragmentActivity {
 //                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
 //        }
         setContentView(mBinding.getRoot());
-        mArticleDetailViewModel = new ViewModelProvider(this).get(ArticleDetailViewModel.class);
+        ArticleDetailViewModel mArticleDetailViewModel = new ViewModelProvider(this)
+                .get(ArticleDetailViewModel.class);
         if (savedInstanceState == null) {
             Intent intent = getIntent();
             if (intent.hasExtra("Position")) {
@@ -79,8 +54,7 @@ public class ArticleDetailActivity extends FragmentActivity {
             if (newArticles != null) {
                 mArticles = newArticles;
                 mPagerAdapter = new MyPagerAdapter(this);
-                mPager = mBinding.pager;
-                mPager.setAdapter(mPagerAdapter);
+                mBinding.pager.setAdapter(mPagerAdapter);
 //        mPager.setPageMargin((int) TypedValue
 //                .applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics()));
 //        mPager.setPageMarginDrawable(new ColorDrawable(0x22000000));

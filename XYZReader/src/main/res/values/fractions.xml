@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- detail -->
+    <fraction name="detail_body_line_spacing_multiplier" format="float">1.25</fraction>
+</resources>

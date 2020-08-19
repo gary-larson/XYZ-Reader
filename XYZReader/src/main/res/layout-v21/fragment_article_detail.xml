@@ -7,12 +7,23 @@
     android:fitsSystemWindows="true"
     tools:context=".ui.ArticleListActivity">
 
+
+
+
+
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/app_bar_height"
+        android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
         android:theme="@style/AppTheme.AppBarOverlay">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/photo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/article_image"
+            app:layout_collapseMode="parallax" />
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/toolbar_layout"
@@ -20,20 +31,12 @@
             android:layout_height="match_parent"
             android:elevation="@dimen/app_bar_elevation"
             android:fitsSystemWindows="true"
-            android:minHeight="112dp"
+            android:minHeight="500dp"
             app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="enterAlways"
+            app:layout_scrollFlags="scroll|enterAlways"
             app:toolbarId="@+id/toolbar">
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:paddingStart="@dimen/logo_padding"
-                android:paddingEnd="@dimen/logo_padding"
-                android:contentDescription="@string/app_name"
-                android:layout_gravity="bottom|start"
-                android:src="@drawable/logo"
-                app:layout_collapseMode="parallax" />
+
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
@@ -42,8 +45,10 @@
                 android:layout_marginLeft="@dimen/list_toolbar_side_margin"
                 android:layout_marginRight="@dimen/list_toolbar_side_margin"
                 app:layout_collapseMode="pin"
-                app:popupTheme="@style/AppTheme.PopupOverlay"
-                 />
+                app:popupTheme="@style/AppTheme.PopupOverlay">
+
+
+            </androidx.appcompat.widget.Toolbar>
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
@@ -51,11 +56,18 @@
 
     <include
         android:id="@+id/content"
-        layout="@layout/article_content"
-        android:visibility="gone"/>
+        layout="@layout/article_detail_content" />
 
-    <include
-        android:id="@+id/error_message"
-        layout="@layout/article_error_message" />
+    <ImageButton android:id="@+id/share_fab"
+        android:stateListAnimator="@anim/fab_state_list_anim"
+        android:background="@drawable/add_fab_background"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/fab_margin"
+        android:layout_marginBottom="@dimen/fab_margin"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:src="@drawable/ic_share"
+        android:elevation="@dimen/fab_elevation"
+        android:contentDescription="@string/action_share" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
