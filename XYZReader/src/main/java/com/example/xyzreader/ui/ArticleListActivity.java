@@ -3,8 +3,6 @@ package com.example.xyzreader.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -30,10 +28,7 @@ import java.util.List;
 public class ArticleListActivity extends AppCompatActivity implements
         ArticleRecyclerViewAdapter.OnListActivityInteractionListener, SwipeRefreshLayout.OnRefreshListener {
     // Declare variables
-    private SwipeRefreshLayout mSwipeRefreshLayout;
     private ArticleViewModel mViewModel;
-    private ProgressBar mLoadingIndicator;
-    private TextView mErrorMessage;
 
 
     /**
@@ -58,10 +53,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         // Declare and initialize variables
         mViewModel = new ViewModelProvider(this).get(ArticleViewModel.class);
         ArticleRecyclerViewAdapter mAdapter;
-        mSwipeRefreshLayout = mContentBinding.swipeRefreshLayout;
-        mSwipeRefreshLayout.setOnRefreshListener(this);
-        mLoadingIndicator = mErrorMessageBinding.pbLoadingIndicator;
-        mErrorMessage = mErrorMessageBinding.tvErrorMessage;
+        mContentBinding.swipeRefreshLayout.setOnRefreshListener(this);
 
         // set recyclerView properties
         RecyclerView mRecyclerView = mContentBinding.recyclerView;
@@ -80,10 +72,11 @@ public class ArticleListActivity extends AppCompatActivity implements
                 // display error message
                 String errorMessage = ((ArticleResult.Error<List<Article>>) newArticles)
                         .mErrorMessage;
+                mErrorMessageBinding.tvErrorMessage.setText(errorMessage);
                 mBinding.content.getRoot().setVisibility(View.GONE);
                 mBinding.errorMessage.getRoot().setVisibility(View.VISIBLE);
-                mLoadingIndicator.setVisibility(View.GONE);
-                mErrorMessage.setVisibility(View.VISIBLE);
+                mErrorMessageBinding.pbLoadingIndicator.setVisibility(View.GONE);
+                mErrorMessageBinding.tvErrorMessage.setVisibility(View.VISIBLE);
             } else {
                 mBinding.content.getRoot().setVisibility(View.VISIBLE);
                 mBinding.errorMessage.getRoot().setVisibility(View.GONE);
@@ -91,7 +84,7 @@ public class ArticleListActivity extends AppCompatActivity implements
                         (ArticleResult.Success<List<Article>>) newArticles;
                 mAdapter.setList(result.data);
             }
-            mSwipeRefreshLayout.setRefreshing(false);
+            mContentBinding.swipeRefreshLayout.setRefreshing(false);
         });
     }
 

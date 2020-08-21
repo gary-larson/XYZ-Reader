@@ -20,7 +20,7 @@
             android:layout_height="match_parent"
             android:elevation="@dimen/app_bar_elevation"
             android:fitsSystemWindows="true"
-            android:minHeight="112dp"
+            android:minHeight="@dimen/minimum_app_bar_height"
             app:contentScrim="?attr/colorPrimary"
             app:layout_scrollFlags="enterAlways"
             app:toolbarId="@+id/toolbar">

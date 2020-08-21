@@ -17,6 +17,7 @@ import com.example.xyzreader.R;
 import com.example.xyzreader.data.Article;
 import com.example.xyzreader.databinding.ListItemArticleBinding;
 import com.example.xyzreader.ui.ArticleListActivity;
+import com.example.xyzreader.utilities.GlideApp;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
@@ -110,12 +111,17 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
         String urlString = article.getThumbnailUrl();
         if (urlString != null) {
             int width = mWidth / mContext.getResources().getInteger(R.integer.list_column_count);
-            Picasso.get().load(urlString)
-                    //.error(R.mipmap.error)
-                    .noPlaceholder()
-                    .resize(width,
-                            (int) (width * article.getAspectRatio() ))
-                    .into(holder.imageView);
+            int height = (int) (width * article.getAspectRatio());
+            GlideApp.with(mContext)
+                    .load(urlString)
+                    .override((int) width, (int) height)
+                    .into(mBinding.ivArticleImage);
+//            Picasso.get().load(urlString)
+//                    //.error(R.mipmap.error)
+//                    .noPlaceholder()
+//                    .resize(width,
+//                            height)
+//                    .into(holder.imageView);
         }
 
 
