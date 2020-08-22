@@ -39,25 +39,4 @@ public class ArticleDetailViewModel extends AndroidViewModel {
         // return all articles or null through live data
         return mArticles;
     }
-
-    public Article getArticle(int position) {
-        if (mArticles == null || mArticles.getValue() == null) {
-            return null;
-        }
-        return mArticles.getValue().get(position);
-    }
-
-    /**
-     * Method to get number of articles
-     * @return number of articles
-     */
-    public  int getArticleCount() {
-        // check if there is data
-        if (mArticles.getValue() == null) {
-            // if not return 0
-            return 0;
-        }
-        // return number of articles
-        return mArticles.getValue().size();
-    }
 }

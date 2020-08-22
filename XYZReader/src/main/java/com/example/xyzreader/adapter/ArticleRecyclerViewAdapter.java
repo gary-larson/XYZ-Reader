@@ -2,7 +2,6 @@ package com.example.xyzreader.adapter;
 
 import android.content.Context;
 import android.text.Html;
-import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,25 +15,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.Article;
 import com.example.xyzreader.databinding.ListItemArticleBinding;
-import com.example.xyzreader.ui.ArticleListActivity;
 import com.example.xyzreader.utilities.GlideApp;
-import com.squareup.picasso.Picasso;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Locale;
 
+/**
+ * Class to deal with article list recycler view
+ */
 public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecyclerViewAdapter.ViewHolder> {
-    // Declare constant
-    private static final String TAG = ArticleListActivity.class.getSimpleName();
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss",
-            Locale.getDefault());
-    // Use default locale format
-    private SimpleDateFormat outputFormat = new SimpleDateFormat("", Locale.getDefault());
-    // Most time functions can only handle 1902 - 2037
-    private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
     // Declare member variables
     private int mWidth;
     private ListItemArticleBinding mBinding;
@@ -71,11 +59,6 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
         return new ViewHolder(view);
     }
 
-//    @Override
-//    public void onBindViewHolder(@NonNull ArticleRecyclerViewAdapter.ViewHolder holder, int position) {
-//
-//    }
-
     /**
      * Method to bind data to the view holder
      * @param holder to bind the data to
@@ -83,45 +66,25 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
      */
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
-
+        // get article at position
         Article article = mArticles.get(position);
+        // set title text
         holder.titleView.setText(article.getTitle());
-        Date publishedDate = article.getPublishedDate();
-        if (!publishedDate.before(START_OF_EPOCH.getTime())) {
+        // set subtitle text
+        holder.subtitleView.setText(Html.fromHtml(article.getByline()));
 
-            holder.subtitleView.setText(Html.fromHtml(
-                    DateUtils.getRelativeTimeSpanString(
-                            publishedDate.getTime(),
-                            System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
-                            DateUtils.FORMAT_ABBREV_ALL).toString()
-                            + "<br/>" + " by "
-                            + article.getAuthor()));
-        } else {
-            holder.subtitleView.setText(Html.fromHtml(
-                    outputFormat.format(publishedDate)
-                            + "<br/>" + " by "
-                            + article.getAuthor()));
-        }
-//        holder.thumbnailView.setImageUrl(
-//                mCursor.getString(ArticleLoader.Query.THUMB_URL),
-//                ImageLoaderHelper.getInstance(ArticleListActivity.this).getImageLoader());
-//        holder.thumbnailView.setAspectRatio(mCursor.getFloat(ArticleLoader.Query.ASPECT_RATIO));
-        // Utilize Picasso to load the poster into the image view
+        // Utilize Glide to load the poster into the image view
         // resize images based on height, width and orientation of phone
         String urlString = article.getThumbnailUrl();
         if (urlString != null) {
+            // calculate width and height
             int width = mWidth / mContext.getResources().getInteger(R.integer.list_column_count);
             int height = (int) (width * article.getAspectRatio());
+            // display image
             GlideApp.with(mContext)
                     .load(urlString)
-                    .override((int) width, (int) height)
+                    .override(width, height)
                     .into(mBinding.ivArticleImage);
-//            Picasso.get().load(urlString)
-//                    //.error(R.mipmap.error)
-//                    .noPlaceholder()
-//                    .resize(width,
-//                            height)
-//                    .into(holder.imageView);
         }
 
 
@@ -134,27 +97,6 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
             }
         });
     }
-
-
-//    /**
-//     * Method to set list data and notify adapter
-//     * @param list to set
-//     */
-//    public void setList(List<MovieResult> list) {
-//        mMovieData = list;
-//        notifyDataSetChanged();
-//    }
-
-//    private Date parsePublishedDate() {
-//        try {
-//            String date = mCursor.getString(ArticleLoader.Query.PUBLISHED_DATE);
-//            return dateFormat.parse(date);
-//        } catch (ParseException ex) {
-//            Log.e(TAG, ex.getMessage());
-//            Log.i(TAG, "passing today's date");
-//            return new Date();
-//        }
-//    }
 
     /**
      * Method to get the number of items in the list
@@ -177,11 +119,21 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
         notifyDataSetChanged();
     }
 
+    /**
+     * Getter for the item id
+     * @param position of item
+     * @return item id
+     */
     @Override
     public long getItemId(int position) {
         return position;
     }
 
+    /**
+     * method to get the item view type
+     * @param position of the item
+     * @return item view type
+     */
     @Override
     public int getItemViewType(int position) {
         return position;
@@ -208,20 +160,6 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
             titleView = mBinding.articleTitle;
             subtitleView = mBinding.articleSubtitle;
         }
-
-//        final View mView;
-//        public MovieResult mMovieResult;
-//        public ImageView mImageView;
-
-//        /**
-//         * Constructor for the view holder class
-//         * @param view to use
-//         */
-//        ViewHolder(View view) {
-//            super(view);
-//            mView = view;
-//            mImageView = binding.ivListItem;
-//        }
     }
 
     /**

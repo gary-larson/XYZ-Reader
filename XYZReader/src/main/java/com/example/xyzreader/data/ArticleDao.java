@@ -14,21 +14,15 @@ import java.util.List;
  */
 @Dao
 public interface ArticleDao {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    void insertArticle(Article article);
-
+    // Query to insert all articles
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAllArticles(List<Article> articleList);
 
-    @Update(onConflict = OnConflictStrategy.REPLACE)
-    void updateArticle(Article Article);
-
+    // Query to delete all articles
     @Query("DELETE FROM articles")
     void deleteAllArticles();
 
+    // Query to select all articles
     @Query("SELECT * FROM articles ORDER BY article_id")
     List<Article> getAllArticles();
-
-    @Query("SELECT * FROM articles WHERE article_id = :articleId")
-    Article getArticle(int articleId);
 }

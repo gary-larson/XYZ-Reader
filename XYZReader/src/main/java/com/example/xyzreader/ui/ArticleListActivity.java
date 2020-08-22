@@ -78,25 +78,38 @@ public class ArticleListActivity extends AppCompatActivity implements
                 mErrorMessageBinding.pbLoadingIndicator.setVisibility(View.GONE);
                 mErrorMessageBinding.tvErrorMessage.setVisibility(View.VISIBLE);
             } else {
+                // display recycler view
                 mBinding.content.getRoot().setVisibility(View.VISIBLE);
                 mBinding.errorMessage.getRoot().setVisibility(View.GONE);
                 ArticleResult.Success<List<Article>> result =
                         (ArticleResult.Success<List<Article>>) newArticles;
                 mAdapter.setList(result.data);
             }
+            // turn off refresh loading indicator
             mContentBinding.swipeRefreshLayout.setRefreshing(false);
         });
     }
 
+    /**
+     * Listener for article list adapter
+     * @param position of click
+     */
     @Override
     public void onListActivityInteraction(int position) {
+        // create intent
         Intent intent = new Intent(this, ArticleDetailActivity.class);
+        // put in position of click
         intent.putExtra("Position", position);
+        // start activity
         startActivity(intent);
     }
 
+    /**
+     * Listener for swipe refresh
+     */
     @Override
     public void onRefresh() {
+        // force refresh from internet
         mViewModel.refreshArticles();
     }
 }

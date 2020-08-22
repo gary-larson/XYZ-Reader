@@ -1,13 +1,9 @@
 package com.example.xyzreader.data;
 
-import android.text.Html;
-
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
-
-import java.util.Date;
 
 @Entity(tableName = "articles")
 public class Article {
@@ -20,12 +16,10 @@ public class Article {
     private String mThumbnailUrl;
     @ColumnInfo(name = "aspect_ratio")
     private double mAspectRatio;
-    @ColumnInfo(name = "author")
-    private String mAuthor;
+    @ColumnInfo(name = "byline")
+    private String mByline;
     @ColumnInfo(name = "title")
     private String mTitle;
-    @ColumnInfo(name = "published_date")
-    private Date mPublishedDate;
     @ColumnInfo(name = "body")
     private String mBody;
 
@@ -41,20 +35,18 @@ public class Article {
      * @param photoUrl to set
      * @param thumbnailUrl to set
      * @param aspectRatio to set
-     * @param author to set
+     * @param byline to set
      * @param title to set
-     * @param publishedDate to set
      * @param body to set
      */
-    public Article(int id, String photoUrl, String thumbnailUrl, double aspectRatio, String author,
-                   String title, Date publishedDate, String body) {
+    public Article(int id, String photoUrl, String thumbnailUrl, double aspectRatio, String byline,
+                   String title, String body) {
         mId = id;
         mPhotoUrl = photoUrl;
         mThumbnailUrl = thumbnailUrl;
         mAspectRatio = aspectRatio;
-        mAuthor = author;
+        mByline = byline;
         mTitle = title;
-        mPublishedDate = publishedDate;
         mBody = body;
     }
 
@@ -123,19 +115,19 @@ public class Article {
     }
 
     /**
-     * Getter for author
-     * @return author
+     * Getter for byline
+     * @return byline
      */
-    public String getAuthor() {
-        return mAuthor;
+    public String getByline() {
+        return mByline;
     }
 
     /**
-     * Setter for author
-     * @param author to set
+     * Setter for byline
+     * @param byline to set
      */
-    public void setAuthor(String author) {
-        this.mAuthor = author;
+    public void setByline(String byline) {
+        this.mByline = byline;
     }
 
     /**
@@ -152,22 +144,6 @@ public class Article {
      */
     public void setTitle(String title) {
         this.mTitle = title;
-    }
-
-    /**
-     * Getter for published date
-     * @return published date
-     */
-    public Date getPublishedDate() {
-        return mPublishedDate;
-    }
-
-    /**
-     * Setter for published date
-     * @param publishedDate to set
-     */
-    public void setPublishedDate(Date publishedDate) {
-        this.mPublishedDate = publishedDate;
     }
 
     /**

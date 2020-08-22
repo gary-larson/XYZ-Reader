@@ -13,9 +13,6 @@ import java.util.Scanner;
  * Class to deal with url's and retrieving data from the internet
  */
 final public class ArticleNetworkUtilities {
-    // Declare constants
-    private static final String ARTICLE_URL =
-            "https://raw.githubusercontent.com/SuperAwesomeness/XYZReader/master/data.json";
     private static final String ORIGINAL_ARTICLE_URL =
             "https://d17h27t6h515a5.cloudfront.net/topher/2017/March/58c5d68f_xyz-reader/xyz-reader.json";
 
