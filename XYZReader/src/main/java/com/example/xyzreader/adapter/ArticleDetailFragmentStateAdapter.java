@@ -4,7 +4,8 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.Lifecycle;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.example.xyzreader.data.Article;
@@ -27,10 +28,11 @@ public class ArticleDetailFragmentStateAdapter extends FragmentStateAdapter {
 
     /**
      * Constructor for adapter
-     * @param fragmentActivity to reference
+     * @param fragmentManager to reference
+     * @param lifecycle to use
      */
-    public ArticleDetailFragmentStateAdapter(@NonNull FragmentActivity fragmentActivity) {
-        super(fragmentActivity);
+    public ArticleDetailFragmentStateAdapter(FragmentManager fragmentManager, Lifecycle lifecycle) {
+        super(fragmentManager, lifecycle);
     }
 
     /**

@@ -3,20 +3,24 @@ package com.example.xyzreader.ui;
 
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
-import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ShareCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.xyzreader.R;
 import com.example.xyzreader.databinding.FragmentArticleDetailBinding;
 import com.example.xyzreader.utilities.GlideApp;
+
+import java.util.Objects;
 
 /**
  * Class to manage detail fragments
@@ -65,6 +69,7 @@ public class ArticleDetailFragment extends Fragment {
      * @param view to use
      * @param savedInstanceState for saved states
      */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         // get arguments passed to fragment
@@ -76,6 +81,11 @@ public class ArticleDetailFragment extends Fragment {
             mByline = args.getString(BYLINE);
             mTitle = args.getString(TITLE);
             mBody = args.getString(BODY);
+        }
+        if (getActivity() != null) {
+            ((AppCompatActivity) getActivity()).setSupportActionBar(mBinding.toolbar);
+            Objects.requireNonNull(((AppCompatActivity) getActivity()).getSupportActionBar())
+                    .setDisplayHomeAsUpEnabled(true);
         }
         // test photo url
         String urlString = mPhotoUrl;
@@ -89,14 +99,16 @@ public class ArticleDetailFragment extends Fragment {
         // set subtitle color
         mBinding.toolbar.setSubtitleTextColor(getResources().getColor(R.color.detail_article_byline));
         // set subtitle
-        mBinding.toolbar.setSubtitle(Html.fromHtml(mByline));
+        //mBinding.toolbar.setSubtitle(Html.fromHtml(mByline));
+        mBinding.toolbar.setSubtitle(mByline);
         //set title
         mBinding.toolbar.setTitle(mTitle);
         // set body typeface
         mBinding.articleBody.setTypeface(Typeface.createFromAsset(getResources().getAssets(),
                 "Rosario-Regular.ttf"));
         // set body
-        mBinding.articleBody.setText(Html.fromHtml(mBody));
+        //mBinding.articleBody.setText(Html.fromHtml(mBody));
+        mBinding.articleBody.setText(mBody);
         if (getActivity() != null) {
             // set floating action bar listener
             mBinding.shareFab.setOnClickListener(fabView -> startActivity(Intent
@@ -105,6 +117,12 @@ public class ArticleDetailFragment extends Fragment {
                             .setText("Some sample text")
                             .getIntent(), getString(R.string.action_share))));
         }
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
     }
 
     /**

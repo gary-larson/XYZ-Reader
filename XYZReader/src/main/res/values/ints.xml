@@ -2,8 +2,4 @@
 <resources>
     <!-- list -->
     <integer name="list_column_count">2</integer>
-
-    <!-- detail -->
-    <integer name="backdrop_divisor">1</integer>
-    <integer name="backdrop_multiplier">1</integer>
 </resources>

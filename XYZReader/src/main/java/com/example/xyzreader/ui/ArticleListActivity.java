@@ -20,10 +20,7 @@ import com.example.xyzreader.utilities.ArticleResult;
 import java.util.List;
 
 /**
- * An activity representing a list of Articles. This activity has different presentations for
- * handset and tablet-size devices. On handsets, the activity presents a list of items, which when
- * touched, lead to a {@link ArticleDetailActivity} representing item details. On tablets, the
- * activity presents a grid of items as cards.
+ * Class to handle a list of articles
  */
 public class ArticleListActivity extends AppCompatActivity implements
         ArticleRecyclerViewAdapter.OnListActivityInteractionListener, SwipeRefreshLayout.OnRefreshListener {

@@ -9,6 +9,9 @@ import com.example.xyzreader.utilities.ArticleResult;
 
 import java.util.List;
 
+/**
+ * Class to handle data for article list
+ */
 public class ArticleViewModel extends AndroidViewModel {
     // Declare variables
     LiveData<ArticleResult<List<Article>>> mArticles;
