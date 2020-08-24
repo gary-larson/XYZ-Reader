@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     android:background="@color/theme_primary"
+    android:fitsSystemWindows="true"
     tools:context=".ui.ArticleDetailActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -39,8 +39,7 @@
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"
 
-                app:popupTheme="@style/AppTheme.PopupOverlay"
-                />
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
         </com.google.android.material.appbar.SubtitleCollapsingToolbarLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -48,10 +47,10 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/theme_primary_dark"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:context=".ui.ArticleDetailActivity"
-        tools:showIn="@layout/fragment_article_detail"
-        android:background="@color/theme_primary_dark">
+        tools:showIn="@layout/fragment_article_detail">
 
         <TextView
             android:id="@+id/article_body"
@@ -67,17 +66,18 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <ImageButton android:id="@+id/share_fab"
+    <ImageButton
+        android:id="@+id/share_fab"
 
-        android:background="@drawable/add_fab_background"
-        android:layout_marginEnd="@dimen/fab_margin"
-        android:layout_marginBottom="@dimen/fab_margin"
         android:layout_width="@dimen/fab_size"
         android:layout_height="@dimen/fab_size"
-        android:src="@drawable/ic_share"
         android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/fab_margin"
+        android:layout_marginBottom="@dimen/fab_margin"
+        android:background="@drawable/add_fab_background"
+        android:contentDescription="@string/action_share"
 
-        android:contentDescription="@string/action_share" />
-        <!-- android:stateListAnimator="@anim/fab_state_list_anim"
-        android:elevation="@dimen/fab_elevation" -->
+        android:src="@drawable/ic_share" />
+    <!-- android:stateListAnimator="@anim/fab_state_list_anim"
+    android:elevation="@dimen/fab_elevation" -->
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
